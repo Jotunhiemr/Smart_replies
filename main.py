@@ -15,7 +15,7 @@ def read_root():
 
 
 @app.get("/generate-reply/{user_id}")
-def generate_reply(user_id: str):
-    conversation = smrpl.load_history(user_id)
-    reply = smrpl.smart_replies(conversation)
+async def generate_reply(user_id: str):
+    conversation = await smrpl.load_history(user_id)
+    reply = await smrpl.smart_replies(conversation)
     return {"response": reply}
