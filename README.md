@@ -63,7 +63,7 @@ Update `config.py` with your desired parameters:
 
 ```python
 class Config:
-    MODEL_NAME = "llama2"     # or any Ollama model
+    MODEL_NAME = "qwen2.5"     # or any Ollama model
     TEMPERATURE = 0.7
     MAX_TOKEN = 200
 ```
