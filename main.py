@@ -28,5 +28,5 @@ async def generate_reply(user_id: str):
     conversation = await smrpl.load_history(user_id)
     reply = await smrpl.smart_replies(conversation)
     return {"response": reply,
-            "timestamp": str(datetime.utcnow())
+            "timestamp": str(datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"))
             }
