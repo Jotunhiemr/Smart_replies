@@ -40,9 +40,9 @@ cd Smart_replies
 ### 2. Create and activate virtual environment
 
 ```bash
-python -m venv venv
-source venv/bin/activate   # Linux / Mac
-venv\Scripts\activate      # Windows
+python -m venv ai_m
+source ai_m/bin/activate   # Linux / Mac
+ai_m\Scripts\activate      # Windows
 ```
 
 ### 3. Install dependencies
