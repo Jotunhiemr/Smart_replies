@@ -1,4 +1,4 @@
-# type : ignore
+# type: ignore
 import os
 from dotenv import load_dotenv
 
@@ -14,11 +14,10 @@ class Config:
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 
     TOKEN = os.getenv("TOKEN", " ")
-    URL = os.getenv(
-        "https://nameless-cliffs-02505-061fd2550135.herokuapp.com/"
-        "api/messages/ai",
-        ""
-    )
+    BASE_URL = os.getenv(
+            "https://nameless-cliffs-02505-061fd2550135.herokuapp.com",
+            ""
+        )
 
 
 config = Config()
