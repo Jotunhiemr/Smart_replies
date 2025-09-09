@@ -3,6 +3,9 @@ import ollama
 import asyncio
 import requests
 from config import Config
+from utils import setup_logging
+
+logger = setup_logging()
 
 
 class SmartReply():
@@ -12,14 +15,14 @@ class SmartReply():
         self.max_tokens = Config.MAX_TOKEN
         self.cache = {}
 
-    async def load_history(self):
+    async def load_history(self, user_id_1: str, user_id_2: str) -> list:
         # Constants
-        BASE_URL = "https://nameless-cliffs-02505-061fd2550135.herokuapp.com"
-        ENDPOINT = "/api/messages/ai/68bc7349115f9cc0606631a1/68bc7cdd00f235eff62205dc"
+
+        ENDPOINT = f"/api/messages/ai/{user_id_1}/{user_id_2}"
 
         # Headers
         headers = {
-            'Host': BASE_URL.split('/')[-1],
+            'Host': Config.BASE_URL.split('/')[-1],
             'Content-Type': 'application/json',
             'User-Agent': 'insomnia/11.1.0',
             'Authorization': f'Bearer {Config.TOKEN}',
@@ -27,14 +30,15 @@ class SmartReply():
         }
 
         try:
-            response = requests.get(BASE_URL + ENDPOINT, headers=headers)
+            response = requests.get(Config.BASE_URL + ENDPOINT,
+                                    headers=headers)
             response.raise_for_status()  # Raise an exception for HTTP errors
-
-            return response.json()["messages"]
+            logger.info("Successfully loaded conversation history")
+            return response.json()["messages"][-5:]  # Return last 5 messages
 
         except requests.exceptions.RequestException as e:
-            print(f"Error making request: {e}")
-            return None
+            logger.error(f"Error making request: {e}")
+            raise e
 
     async def smart_replies(self, conversation: list) -> str:
         prompt = f"""
@@ -61,6 +65,8 @@ class SmartReply():
                     "temperature": self.temperature,
                 },
             )
+            logger.info("Successfully generated smart reply")
             return response.get("response", "").strip()
         except Exception as e:
-            return f"Error generating response: {str(e)}"
+            logger.error(f"Error generating response: {str(e)}")
+            raise e
