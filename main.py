@@ -1,6 +1,7 @@
 # type: ignore
+import json
 from fastapi import FastAPI
-from datatime import datetime
+from datetime import datetime
 from pydantic import BaseModel
 from core import SmartReply
 
@@ -11,7 +12,7 @@ app = FastAPI(title="Smart Reply API",
 
 
 class ResponseModel(BaseModel):
-    response: str
+    response: dict
     timestamp: str
 
 
@@ -24,9 +25,9 @@ def read_root():
 
 
 @app.get("/generate-reply/{user_id}", response_model=ResponseModel)
-async def generate_reply(user_id: str):
-    conversation = await smrpl.load_history(user_id)
+async def generate_reply():
+    conversation = await smrpl.load_history()
     reply = await smrpl.smart_replies(conversation)
-    return {"response": reply,
-            "timestamp": str(datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"))
+    return {"response": json.loads(reply),
+            "timestamp": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
             }

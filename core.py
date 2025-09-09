@@ -1,6 +1,7 @@
 # type: ignore
 import ollama
 import asyncio
+import requests
 from config import Config
 
 
@@ -11,10 +12,31 @@ class SmartReply():
         self.max_tokens = Config.MAX_TOKEN
         self.cache = {}
 
-    async def load_history(self, user_id):
-        pass
+    async def load_history(self):
+        # Constants
+        BASE_URL = "https://nameless-cliffs-02505-061fd2550135.herokuapp.com"
+        ENDPOINT = "/api/messages/ai/68bc7349115f9cc0606631a1/68bc7cdd00f235eff62205dc"
 
-    async def smart_replies(self, conversation):
+        # Headers
+        headers = {
+            'Host': BASE_URL.split('/')[-1],
+            'Content-Type': 'application/json',
+            'User-Agent': 'insomnia/11.1.0',
+            'Authorization': f'Bearer {Config.TOKEN}',
+            'Accept': '*/*'
+        }
+
+        try:
+            response = requests.get(BASE_URL + ENDPOINT, headers=headers)
+            response.raise_for_status()  # Raise an exception for HTTP errors
+
+            return response.json()["messages"]
+
+        except requests.exceptions.RequestException as e:
+            print(f"Error making request: {e}")
+            return None
+
+    async def smart_replies(self, conversation: list) -> str:
         prompt = f"""
             The following is a conversation between two speaker:
             ----------------------
@@ -35,8 +57,9 @@ class SmartReply():
                 ollama.generate,
                 model=self.model_name,
                 prompt=prompt,
-                temperature=self.temperature,
-                max_tokens=self.max_tokens,
+                options={
+                    "temperature": self.temperature,
+                },
             )
             return response.get("response", "").strip()
         except Exception as e:
