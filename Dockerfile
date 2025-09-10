@@ -16,7 +16,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Expose port for aiohttp
-EXPOSE 8080
+EXPOSE 8000
 
 # Run the application
 CMD ["uvicorn", "main:app", "--reload"]

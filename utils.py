@@ -1,3 +1,4 @@
+# type: ignore
 import logging
 from config import Config
 
