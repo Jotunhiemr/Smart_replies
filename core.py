@@ -1,7 +1,9 @@
 # type: ignore
-import ollama
+import json
+import re
 import asyncio
 import requests
+from openai import OpenAI
 from config import Config
 from utils import setup_logging
 
@@ -14,10 +16,10 @@ class SmartReply():
         self.temperature = Config.TEMPERATURE
         self.max_tokens = Config.MAX_TOKEN
         self.cache = {}
+        self.model = OpenAI(api_key=Config.OPENAI_API_KEY)
 
     async def load_history(self, user_id_1: str, user_id_2: str) -> list:
         # Constants
-
         ENDPOINT = f"/api/messages/ai/{user_id_1}/{user_id_2}"
 
         # Headers
@@ -58,15 +60,22 @@ class SmartReply():
             """
         try:
             response = await asyncio.to_thread(
-                ollama.generate,
+                self.model.responses.create,
                 model=self.model_name,
-                prompt=prompt,
-                options={
-                    "temperature": self.temperature,
-                },
+                input=prompt,
+                # reasoning={"summary": "concise"}
             )
             logger.info("Successfully generated smart reply")
-            return response.get("response", "").strip()
+            # Extract first message text
+            if response.output and response.output[0].content:
+                reply_text = response.output[0].content[0].text.strip()
+
+                # Remove markdown fences if present
+                reply_text = re.sub(r"^```(?:json)?", "", reply_text)
+                reply_text = re.sub(r"```$", "", reply_text).strip()
+                return json.loads(reply_text)
+
+            return {}
         except Exception as e:
             logger.error(f"Error generating response: {str(e)}")
             raise e

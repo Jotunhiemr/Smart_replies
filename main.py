@@ -1,5 +1,4 @@
 # type: ignore
-import json
 from fastapi import FastAPI
 from datetime import datetime
 from pydantic import BaseModel
@@ -34,11 +33,11 @@ async def generate_reply(user_id_1: str, user_id_2: str) -> dict:
         logger.info("Loaded conversation history")
         reply = await smrpl.smart_replies(conversation)
         logger.info(f"Generated reply: {reply}")
-        return {"response": json.loads(reply),
+        return {"response": reply,
                 "timestamp": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
                 }
     except Exception as e:
         logger.error(f"Error generating reply: {e}")
-        return {"response": {"error": "Failed to generate reply"},
+        return {"response": {"error": f"Failed to generate reply - {e}"},
                 "timestamp": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
                 }
