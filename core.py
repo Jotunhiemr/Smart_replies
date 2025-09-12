@@ -2,7 +2,7 @@
 import json
 import re
 import asyncio
-import requests
+import aiohttp
 from openai import OpenAI
 from config import Config
 from utils import setup_logging
@@ -18,31 +18,39 @@ class SmartReply():
         self.cache = {}
         self.model = OpenAI(api_key=Config.OPENAI_API_KEY)
 
-    async def load_history(self, user_id_1: str, user_id_2: str) -> list:
-        # Constants
-        ENDPOINT = f"/api/messages/ai/{user_id_1}/{user_id_2}"
-
-        # Headers
-        headers = {
-            'Host': Config.BASE_URL.split('/')[-1],
-            'Content-Type': 'application/json',
-            'User-Agent': 'insomnia/11.1.0',
-            'Authorization': f'Bearer {Config.TOKEN}',
-            'Accept': '*/*'
-        }
-
+    async def load_history(self, user_id_1: str,
+                           user_id_2: str) -> list:
         try:
-            response = requests.get(Config.BASE_URL + ENDPOINT,
-                                    headers=headers)
-            response.raise_for_status()  # Raise an exception for HTTP errors
-            logger.info("Successfully loaded conversation history")
-            return response.json()["messages"][-5:]  # Return last 5 messages
-
-        except requests.exceptions.RequestException as e:
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.get(
+                    (
+                        Config.BASE_URL
+                        + f"/api/messages/ai/{user_id_1}/{user_id_2}"
+                    ),
+                    headers={
+                        'Host': Config.BASE_URL.split('/')[-1],
+                        'Content-Type': 'application/json',
+                        'User-Agent': 'insomnia/11.1.0',
+                        'Authorization': f'Bearer {Config.TOKEN}',
+                        'Accept': '*/*'
+                    }
+                ) as response:
+                    if response.status == 403:
+                        error_data = await response.json()
+                        logger.warning(
+                            f"Access denied: {error_data.get('msg')}"
+                        )
+                        raise Exception
+                    else:
+                        response.raise_for_status()
+                        logger.info("Successfully loaded conversation history")
+                        return (await response.json())["messages"][-5:]
+        except aiohttp.ClientError as e:
             logger.error(f"Error making request: {e}")
             raise e
 
-    async def smart_replies(self, conversation: list) -> str:
+    async def smart_replies(self, conversation: list) -> dict:
         prompt = f"""
             The following is a conversation between two speaker:
             ----------------------
@@ -63,7 +71,6 @@ class SmartReply():
                 self.model.responses.create,
                 model=self.model_name,
                 input=prompt,
-                # reasoning={"summary": "concise"}
             )
             logger.info("Successfully generated smart reply")
             # Extract first message text

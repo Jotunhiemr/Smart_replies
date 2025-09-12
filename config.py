@@ -1,5 +1,6 @@
 # type: ignore
 import os
+import logging
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -12,7 +13,10 @@ class Config:
     TEMPERATURE: float = 0.7
     MAX_TOKEN: int = 200
 
-    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
+    # Logging configuration
+    LOG_LEVEL: int = logging.INFO
+    LOG_FORMAT: str = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    LOG_DATE_FORMAT: str = '%Y-%m-%d %H:%M:%S'
 
     TOKEN: str = os.getenv("TOKEN", " ")
     BASE_URL: str = os.getenv(

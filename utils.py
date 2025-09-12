@@ -1,24 +1,28 @@
 # type: ignore
 import logging
-from config import Config
+from config import config
 
 
-def setup_logging():
-    logger = logging.getLogger(__name__)
-    logger.setLevel(Config.LOG_LEVEL)
+def setup_logging(level: int = None) -> logging.Logger:
+    """
+    Configure logging with proper formatting
 
-    # Create console handler
-    ch = logging.StreamHandler()
-    ch.setLevel(Config.LOG_LEVEL)
+    Args:
+        level: Logging level (defaults to config.LOG_LEVEL)
 
-    # Create formatter and add it to the handlers
-    formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    Returns:
+        Logger instance
+    """
+    if level is None:
+        level = config.LOG_LEVEL
+
+    logging.basicConfig(
+        level=level,
+        format=config.LOG_FORMAT,
+        datefmt=config.LOG_DATE_FORMAT
     )
-    ch.setFormatter(formatter)
+    return logging.getLogger(__name__)
 
-    # Add the handlers to the logger
-    if not logger.hasHandlers():
-        logger.addHandler(ch)
 
-    return logger
+def security():
+    pass

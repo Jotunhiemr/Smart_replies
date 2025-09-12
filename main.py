@@ -27,11 +27,13 @@ def read_root():
 
 @app.get("/generate-reply/{user_id_1}/{user_id_2}",
          response_model=ResponseModel)
-async def generate_reply(user_id_1: str, user_id_2: str) -> dict:
+async def generate_reply(user_id_1: str, user_id_2: str
+                         ) -> dict:
     try:
         conversation = await smrpl.load_history(user_id_1, user_id_2)
-        logger.info("Loaded conversation history")
+        logger.info(f"Loaded conversation history: {conversation}")
         reply = await smrpl.smart_replies(conversation)
+        print("REPLY:", reply)
         logger.info(f"Generated reply: {reply}")
         return {"response": reply,
                 "timestamp": str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))

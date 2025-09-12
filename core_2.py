@@ -1,3 +1,4 @@
+# type: ignore
 import ollama
 import asyncio
 import aiohttp
@@ -13,37 +14,37 @@ class SmartReply:
         self.max_tokens = Config.MAX_TOKEN
         self.cache = {}
         self.session: Optional[aiohttp.ClientSession] = None
-        
+
     async def setup(self):
         """Initialize the aiohttp session"""
         self.session = aiohttp.ClientSession()
-        
+
     async def cleanup(self):
         """Cleanup resources"""
         if self.session:
             await self.session.close()
-            
+
     @lru_cache(maxsize=32)
     def _get_headers(self) -> Dict:
         """Cached header generation"""
         return {
-            'Host': "nameless-cliffs-02505-061fd2550135.herokuapp.com",
+            'Host': f"{Config.BASE_URL.split('/')[-1]}",
             'Content-Type': 'application/json',
             'User-Agent': 'insomnia/11.1.0',
             'Authorization': f'Bearer {Config.TOKEN}',
             'Accept': '*/*'
         }
-    
-    async def load_history(self) -> Optional[List]:
+
+    async def load_history(self, userid_1, userid_2) -> Optional[List]:
         """Load conversation history with caching"""
         cache_key = "conversation_history"
         if cache_key in self.cache:
             return self.cache[cache_key]
-            
+
         try:
             async with self.session.get(
-                "https://nameless-cliffs-02505-061fd2550135.herokuapp.com"
-                "/api/messages/ai/68bc7349115f9cc0606631a1/68bc7cdd00f235eff62205dc",
+                f"{Config.BASE_URL}"
+                f"/api/messages/ai/{userid_1}/{userid_2}",
                 headers=self._get_headers()
             ) as response:
                 response.raise_for_status()
@@ -53,7 +54,7 @@ class SmartReply:
         except aiohttp.ClientError as e:
             print(f"Error loading history: {e}")
             return None
-            
+
     async def smart_replies(self, conversation: List[str]) -> str:
         """Generate smart replies with optimized parameters"""
         # Cache conversation prompt
@@ -76,7 +77,7 @@ class SmartReply:
             Provide output in JSON format
             """
             self.cache[prompt_cache_key] = prompt
-            
+
         try:
             response = await asyncio.to_thread(
                 ollama.generate,
